@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = []
+}
+
+model User {
+  id    String @id @default(cuid())
+  email String @unique
+  slug  String @unique
+
+  passwordHash String
+
+  name        String
+  logoURL     String?
+  brandColor  String?
+  socialLinks Json?
+
+  balance Decimal @default(0)
+
+  blogs    Blog[]
+  likes    Like[]
+  comments Comment[]
+
+  meets Meet[]
+
+  sponsers Sponser[]
+  merchs   Merch[]
+
+  receivedTransaction Transaction[] @relation(name: "paidBy")
+  paidTransaction     Transaction[] @relation(name: "paidTo")
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Blog {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  userID String
+  user   User   @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  title   String
+  content String
+
+  tags Tag[]
+
+  likes    Like[]
+  comments Comment[]
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Tag {
+  id String @id @default(cuid())
+
+  blogID String
+  blog   Blog   @relation(fields: [blogID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  name String @unique
+}
+
+model Like {
+  id String @id @default(cuid())
+
+  userID String
+  user   User   @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  blogID String
+  blog   Blog   @relation(fields: [blogID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+}
+
+model Comment {
+  id String @id @default(cuid())
+
+  userID String
+  user   User   @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  content String
+
+  blogID String
+  blog   Blog   @relation(fields: [blogID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Transaction {
+  id     String  @id @default(cuid())
+  amount Decimal
+
+  paidTo     String
+  paidToUser User   @relation(name: "paidTo", fields: [paidTo], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  paidBy     String
+  paidByUser User   @relation(name: "paidBy", fields: [paidBy], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model Sponser {
+  id String @id @default(cuid())
+
+  URL      String
+  content  String
+  imageURL String?
+
+  isActive Boolean @default(true)
+
+  userID String
+  user   User   @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model Merch {
+  id String @id @default(cuid())
+
+  URL      String
+  content  String
+  imageURL String?
+
+  isActive Boolean @default(true)
+
+  userID String
+  user   User   @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Meet {
+  id String @id @default(cuid())
+
+  name  String
+  slots Json
+  slug  String  @unique
+  about String?
+  link  String
+
+  applicants Applicant[]
+
+  userID String
+  user   User   @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model Applicant {
+  id String @id @default(cuid())
+
+  name  String
+  email String
+  note  String
+
+  meetID String
+  user   Meet   @relation(fields: [meetID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+}
